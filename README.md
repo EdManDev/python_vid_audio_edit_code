@@ -4,14 +4,19 @@ Python scripts for video/audio processing including silence removal and format c
 
 ## Scripts Included
 
-### 1. Video Silence Cutter (`main.py`)
-Removes silent sections from video files while preserving video and audio quality.
-
-### 2. Audio Silence Cutter (`audio_silence_cutter.py`)
+### 1. Audio Silence Cutter (`audio_silence_cutter.py`)
 Optimized for audio-only files (.mp3, .wav, .flac, .m4a, .aac, .ogg).
+
+### 2. Video Silence Cutter (`video_silence_cutter.py`)
+Core silence detection functionality using FFmpeg for finding silent sections in video files.
 
 ### 3. MP4 to MP3 Converter (`mp4_to_mp3_converter.py`)
 Converts MP4 video files to MP3 audio format with high quality output.
+
+### 4. Utility Scripts (`utilities/`)
+- **Metadata to CSV/JSON Converter** (`metadata_to_csv_json.py`): Converts metadata files to CSV or JSON format
+- **Audio Format Converter** (`convert_audio_to_22k_mono.py`): Converts WAV files to 22kHz mono format
+- **Simple Script** (`simple script.py`): Additional utility script
 
 ## Features
 - Detect silent sections by audio threshold
@@ -39,21 +44,6 @@ ffmpeg -version
 
 ## Usage
 
-### Video Processing (`main.py`)
-```bash
-# Basic usage
-python main.py lecture.mp4
-
-# Custom output file
-python main.py input.mp4 output.mp4
-
-# Adjust silence detection sensitivity (default: -25dB)
-python main.py input.mp4 output.mp4 -30
-
-# Example: Process video with aggressive silence cutting
-python main.py lecture.mp4 lecture_edited.mp4 -35
-```
-
 ### Audio Processing (`audio_silence_cutter.py`)
 ```bash
 # Basic usage
@@ -75,17 +65,26 @@ python3 mp4_to_mp3_converter.py input.mp4
 python3 mp4_to_mp3_converter.py video.mp4
 ```
 
+### Utility Scripts
+
+#### Metadata Conversion (`utilities/metadata_to_csv_json.py`)
+```bash
+# Convert metadata file to CSV or JSON
+python3 utilities/metadata_to_csv_json.py metadata.txt
+```
+
+#### Audio Format Conversion (`utilities/convert_audio_to_22k_mono.py`)
+```bash
+# Convert WAV to 22kHz mono format
+python3 utilities/convert_audio_to_22k_mono.py input.wav
+```
+
 ## Silence Threshold Guide
 - **-20 to -25dB**: Very aggressive (removes low background noise)
 - **-30 to -35dB**: Moderate (good for most recordings)
 - **-40 to -50dB**: Conservative (only removes obvious silence)
 
 ## Configuration
-
-### Video Processing
-- Buffer time: 0.2 seconds
-- Logs saved to: `silence_cutter.log`
-- Default threshold: -25dB
 
 ### Audio Processing  
 - Buffer time: 0.1 seconds
