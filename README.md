@@ -1,6 +1,6 @@
-# Silence Cutter Tools
+# Video and Audio Processing Tools
 
-Python scripts for removing silent sections from videos and audio files using FFmpeg.
+Python scripts for video/audio processing including silence removal and format conversion using FFmpeg.
 
 ## Scripts Included
 
@@ -10,12 +10,16 @@ Removes silent sections from video files while preserving video and audio qualit
 ### 2. Audio Silence Cutter (`audio_silence_cutter.py`)
 Optimized for audio-only files (.mp3, .wav, .flac, .m4a, .aac, .ogg).
 
+### 3. MP4 to MP3 Converter (`mp4_to_mp3_converter.py`)
+Converts MP4 video files to MP3 audio format with high quality output.
+
 ## Features
 - Detect silent sections by audio threshold
 - Automatically cut silent portions
 - Adjustable silence detection sensitivity
 - Buffer periods around cuts for natural transitions
 - Separate optimizations for video vs audio processing
+- Convert MP4 video files to high-quality MP3 audio
 
 ## Requirements
 - Python 3.8+
@@ -62,6 +66,15 @@ python3 audio_silence_cutter.py audio.wav clean_audio.wav -35
 python3 audio_silence_cutter.py --help
 ```
 
+### MP4 to MP3 Conversion (`mp4_to_mp3_converter.py`)
+```bash
+# Basic usage (outputs to output.mp3)
+python3 mp4_to_mp3_converter.py input.mp4
+
+# Example
+python3 mp4_to_mp3_converter.py video.mp4
+```
+
 ## Silence Threshold Guide
 - **-20 to -25dB**: Very aggressive (removes low background noise)
 - **-30 to -35dB**: Moderate (good for most recordings)
@@ -82,11 +95,15 @@ python3 audio_silence_cutter.py --help
 
 ## Supported Formats
 
-### Video
+### Video Input (for silence cutting and conversion)
 - .mp4, .avi, .mov, .mkv, .webm (any FFmpeg-supported video format)
 
 ### Audio
 - .mp3, .wav, .flac, .m4a, .aac, .ogg (any FFmpeg-supported audio format)
+
+### Conversion
+- Input: MP4 video files
+- Output: MP3 audio files (192kbps, 44.1kHz)
 
 ## Notes
 - Preserves original quality
