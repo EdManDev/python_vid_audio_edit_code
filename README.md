@@ -13,7 +13,10 @@ Core silence detection functionality using FFmpeg for finding silent sections in
 ### 3. MP4 to MP3 Converter (`mp4_to_mp3_converter.py`)
 Converts MP4 video files to MP3 audio format with high quality output.
 
-### 4. Utility Scripts (`utilities/`)
+### 4. OGG → WAV Batch Converter (`convert_ogg_to_wav.py`)
+Batch converts `.ogg` files to `.wav` using FFmpeg. Supports input/output folders, glob patterns, and overwrite mode.
+
+### 5. Utility Scripts (`utilities/`)
 - **Metadata to CSV/JSON Converter** (`metadata_to_csv_json.py`): Converts metadata files to CSV or JSON format
 - **Audio Format Converter** (`convert_audio_to_22k_mono.py`): Converts WAV files to 22kHz mono format
 - **Simple Script** (`simple script.py`): Additional utility script
@@ -29,17 +32,23 @@ Converts MP4 video files to MP3 audio format with high quality output.
 ## Requirements
 - Python 3.8+
 - FFmpeg (system installation with ffprobe)
+  - Windows: install via `winget install Gyan.FFmpeg` or `choco install ffmpeg`
+  - Linux (Debian/Ubuntu): `sudo apt install ffmpeg`
+  - macOS: `brew install ffmpeg`
+
+Optional (for utilities only):
+- Python packages: `librosa`, `soundfile`
 
 ## Installation
 ```bash
-# Install FFmpeg on Ubuntu/Debian or WSL Windows 
-sudo apt update && sudo apt install ffmpeg
-
-# Install FFmpeg on macOS
-brew install ffmpeg
-
-# Verify installation
+# Verify FFmpeg is available
 ffmpeg -version
+
+# (Optional) Create and activate a virtual environment
+python -m venv .venv && source .venv/bin/activate  # Windows (PowerShell): .venv\\Scripts\\Activate.ps1
+
+# (Optional) Install utility dependencies
+pip install librosa soundfile
 ```
 
 ## Usage
@@ -56,6 +65,18 @@ python3 audio_silence_cutter.py audio.wav clean_audio.wav -35
 python3 audio_silence_cutter.py --help
 ```
 
+### Video Processing (`video_silence_cutter.py`)
+```bash
+# Basic usage
+python3 video_silence_cutter.py input.mp4
+
+# Custom output file
+python3 video_silence_cutter.py input.mp4 edited.mp4
+
+# Show help
+python3 video_silence_cutter.py --help
+```
+
 ### MP4 to MP3 Conversion (`mp4_to_mp3_converter.py`)
 ```bash
 # Basic usage (outputs to output.mp3)
@@ -63,6 +84,18 @@ python3 mp4_to_mp3_converter.py input.mp4
 
 # Example
 python3 mp4_to_mp3_converter.py video.mp4
+```
+
+### OGG to WAV Batch Conversion (`convert_ogg_to_wav.py`)
+```bash
+# Convert all .ogg files in the current directory to .wav
+python3 convert_ogg_to_wav.py
+
+# Specify input and output directories
+python3 convert_ogg_to_wav.py --input "path/to/ogg" --output "path/to/wav"
+
+# Use a custom glob pattern and overwrite existing .wav files
+python3 convert_ogg_to_wav.py --pattern "**/*.ogg" --overwrite
 ```
 
 ### Utility Scripts
@@ -109,3 +142,7 @@ python3 utilities/convert_audio_to_22k_mono.py input.wav
 - Processing time depends on file size and system resources
 - Both scripts can run independently
 - Temporary filter files are automatically cleaned up
+  
+Additional notes:
+- `utilities/convert_audio_to_22k_mono.py` requires `librosa` and `soundfile`.
+- If running on Windows, consider using WSL or ensure FFmpeg is on the PATH.
