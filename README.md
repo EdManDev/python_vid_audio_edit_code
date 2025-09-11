@@ -25,24 +25,30 @@ Batch converts `.ogg` files to `.wav` using FFmpeg. Supports input/output folder
 
 ### File Management Scripts
 
-#### 6. File Renamer (`file_renamer_script.py`)
+#### 6. Audio File Splitter (`split_it.py`)
+Intelligently splits large audio files into smaller chunks of approximately 25 MB each, while preserving audio quality and splitting only at silent points to avoid cutting words or introducing audio artifacts.
+
+#### 7. File Renamer (`file_renamer_script.py`)
 Batch renames files by removing "- Made with Clipchamp" text from filenames. Supports dry-run mode and confirmation prompts.
 
 ### Utility Scripts (`utilities/`)
 
-#### 7. Metadata Converter (`metadata_to_csv_json.py`)
+#### 8. Metadata Converter (`metadata_to_csv_json.py`)
 Converts metadata files (pipe-separated format) to both CSV and JSON formats for data processing workflows.
 
-#### 8. Audio Format Converter (`convert_audio_to_22k_mono.py`)
+#### 9. Audio Format Converter (`convert_audio_to_22k_mono.py`)
 Converts WAV files to 22kHz mono format using librosa. Supports batch processing and recursive folder scanning.
 
-#### 9. LJSpeech Dataset Generator (`simple script.py`)
+#### 10. LJSpeech Dataset Generator (`simple script.py`)
 Generates folder structure for LJSpeech-1.1 processing from mimic-recording-studio database (legacy script).
 
 ## Features
 - **Silence Detection & Removal**: Detect silent sections by audio threshold and automatically cut them
 - **Adjustable Sensitivity**: Configurable silence detection thresholds (-20dB to -50dB)
 - **Buffer Management**: Smart buffer periods around cuts for natural transitions
+- **Audio File Splitting**: Intelligently split large audio files into smaller chunks at silent points
+- **Size-based Splitting**: Create chunks based on file size (bytes), not duration
+- **Quality Preservation**: Maintains original audio format and quality during splitting
 - **Format Conversion**: Convert between various audio/video formats (MP4→MP3, M4A→WAV, OGG→WAV)
 - **Batch Processing**: Process multiple files with glob patterns and directory support
 - **File Management**: Batch rename files with pattern matching and dry-run capabilities
@@ -59,7 +65,11 @@ Generates folder structure for LJSpeech-1.1 processing from mimic-recording-stud
   - macOS: `brew install ffmpeg`
 
 ### Optional Dependencies
-For specific utility scripts:
+For specific scripts:
+- **pydub**: Required for `split_it.py` (audio file splitting)
+  ```bash
+  pip install pydub
+  ```
 - **librosa** and **soundfile**: Required for `utilities/convert_audio_to_22k_mono.py`
   ```bash
   pip install librosa soundfile
@@ -72,6 +82,9 @@ ffmpeg -version
 
 # (Optional) Create and activate a virtual environment
 python -m venv .venv && source .venv/bin/activate  # Windows (PowerShell): .venv\\Scripts\\Activate.ps1
+
+# Install dependencies for audio splitting
+pip install pydub
 
 # (Optional) Install utility dependencies
 pip install librosa soundfile
@@ -101,6 +114,21 @@ python3 video_silence_cutter.py input.mp4 edited.mp4
 
 # Show help
 python3 video_silence_cutter.py --help
+```
+
+### Audio File Splitting (`split_it.py`)
+```bash
+# Basic usage - Split audio file into ~25MB chunks in ./chunks directory
+python3 split_it.py your_audio_file.mp3
+
+# Custom output directory
+python3 split_it.py your_audio_file.mp3 ./my_output_folder
+
+# Custom chunk size (30MB instead of 25MB)
+python3 split_it.py your_audio_file.wav ./output --size 30.0
+
+# Show help
+python3 split_it.py --help
 ```
 
 ### MP4 to MP3 Conversion (`convert_mp4_to_mp3.py`)
@@ -214,6 +242,62 @@ python3 utilities/convert_audio_to_22k_mono.py --recursive
 - **OGG → WAV**: Uncompressed WAV format
 - **WAV → 22kHz Mono**: For ML/AI applications
 
+## Audio File Splitting Details
+
+### Features
+- 🎯 **Size-based splitting**: Creates chunks based on file size (bytes), not duration
+- 🔇 **Silent point detection**: Splits only at quiet moments to avoid cutting words
+- 🎵 **Quality preservation**: Maintains original audio format and quality
+- 📁 **Flexible output**: Custom output directories and chunk sizes
+- 🔄 **Multiple formats**: Supports MP3, WAV, FLAC, M4A, and more
+- 📊 **Progress tracking**: Detailed information about each chunk created
+
+### How It Works
+1. **Analyzes** the input file size and estimates number of chunks needed
+2. **Calculates** target duration for each chunk based on size ratio
+3. **Searches** for silent points within ±10% of the target split location
+4. **Falls back** to more lenient silence detection if no quiet moments found
+5. **Exports** chunks maintaining original quality and format
+6. **Provides** detailed progress information for each chunk
+
+### Example Output
+```
+Loading audio file: videoplayback.mp3
+Original file size: 156.43 MB
+Audio duration: 3847.50 seconds
+Audio format: 44100 Hz, 2 channels, 16 bit
+Estimated chunks needed: 7
+
+Processing chunk 1...
+Saved: part1.mp3
+  Size: 24.98 MB
+  Duration: 612.34 seconds
+  Time range: 0.00s - 612.34s
+
+Processing chunk 2...
+Saved: part2.mp3
+  Size: 24.95 MB
+  Duration: 608.12 seconds
+  Time range: 612.34s - 1220.46s
+
+...
+
+✓ Audio splitting completed successfully!
+```
+
+### Advanced Options
+| Option | Description | Default |
+|--------|-------------|---------|
+| `input_file` | Path to audio file to split | Required |
+| `output_dir` | Directory for output chunks | `./chunks` |
+| `--size` | Target chunk size in MB | `25.0` |
+
+### Tips for Best Results
+- **Podcasts/Speech**: Works excellently due to natural pauses
+- **Music**: May split between songs or during instrumental breaks
+- **Dense audio**: Script will find the best available quiet moments
+- **Large files**: Progress is shown for each chunk created
+
 ## Project Structure
 ```
 python_vid_audio_edit_code/
@@ -222,6 +306,7 @@ python_vid_audio_edit_code/
 ├── convert_mp4_to_mp3.py            # MP4 to MP3 conversion
 ├── convert_m4a_to_wav.py            # M4A to WAV batch conversion
 ├── convert_ogg_to_wav.py            # OGG to WAV batch conversion
+├── split_it.py                      # Audio file splitting
 ├── file_renamer_script.py           # Batch file renaming
 ├── requirements.txt                 # Python dependencies
 ├── README.md                        # This file
@@ -241,6 +326,13 @@ python_vid_audio_edit_code/
 
 ### Additional Notes
 - `utilities/convert_audio_to_22k_mono.py` requires `librosa` and `soundfile` packages
+- `split_it.py` requires `pydub` package for audio file splitting
 - On Windows, consider using WSL or ensure FFmpeg is on the PATH
 - All batch conversion scripts support glob patterns for flexible file selection
 - File renamer includes dry-run mode for safe testing
+
+### Audio Splitter Troubleshooting
+- **"ModuleNotFoundError: No module named 'pydub'"**: Install pydub using `pip install pydub`
+- **"ffmpeg not found" or audio format errors**: Install ffmpeg system-wide
+- **File too small message**: If your file is already smaller than 25MB, no splitting is needed
+- **Permission errors**: Ensure you have write permissions to the output directory
