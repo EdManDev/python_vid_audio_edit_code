@@ -9,6 +9,15 @@ A comprehensive collection of Python scripts for video/audio processing includin
 #### 1. Audio Silence Cutter (`audio_silence_cutter.py`)
 Removes silent sections from audio files (.mp3, .wav, .flac, .m4a, .aac, .ogg) with configurable thresholds and buffer periods.
 
+**Key Features:**
+- Intelligent silence detection using FFmpeg's silencedetect filter
+- Configurable silence threshold (dB) and minimum silence duration (0.5 seconds)
+- Smart buffer management around silence cuts for natural transitions
+- Automatic audio duration detection
+- Advanced filter generation using aselect and asetpts for seamless audio reconstruction
+- Comprehensive error handling and logging
+- Support for all major audio formats
+
 #### 2. Video Silence Cutter (`video_silence_cutter.py`)
 Detects and removes silent sections from video files while preserving both video and audio tracks.
 
@@ -25,35 +34,32 @@ Batch converts `.ogg` files to `.wav` using FFmpeg. Supports input/output folder
 
 ### File Management Scripts
 
-#### 6. Audio File Splitter (`split_it.py`)
-Intelligently splits large audio files into smaller chunks of approximately 25 MB each, while preserving audio quality and splitting only at silent points to avoid cutting words or introducing audio artifacts.
-
-#### 7. File Renamer (`file_renamer_script.py`)
+#### 6. File Renamer (`file_renamer_script.py`)
 Batch renames files by removing "- Made with Clipchamp" text from filenames. Supports dry-run mode and confirmation prompts.
 
 ### Utility Scripts (`utilities/`)
 
-#### 8. Metadata Converter (`metadata_to_csv_json.py`)
+#### 7. Metadata Converter (`metadata_to_csv_json.py`)
 Converts metadata files (pipe-separated format) to both CSV and JSON formats for data processing workflows.
 
-#### 9. Audio Format Converter (`convert_audio_to_22k_mono.py`)
+#### 8. Audio Format Converter (`convert_audio_to_22k_mono.py`)
 Converts WAV files to 22kHz mono format using librosa. Supports batch processing and recursive folder scanning.
 
-#### 10. LJSpeech Dataset Generator (`simple script.py`)
+#### 9. LJSpeech Dataset Generator (`simple script.py`)
 Generates folder structure for LJSpeech-1.1 processing from mimic-recording-studio database (legacy script).
 
 ## Features
-- **Silence Detection & Removal**: Detect silent sections by audio threshold and automatically cut them
+- **Advanced Silence Detection**: Uses FFmpeg's silencedetect filter with configurable thresholds and minimum duration
+- **Smart Audio Reconstruction**: Employs aselect and asetpts filters for seamless audio segment joining
 - **Adjustable Sensitivity**: Configurable silence detection thresholds (-20dB to -50dB)
-- **Buffer Management**: Smart buffer periods around cuts for natural transitions
-- **Audio File Splitting**: Intelligently split large audio files into smaller chunks at silent points
-- **Size-based Splitting**: Create chunks based on file size (bytes), not duration
-- **Quality Preservation**: Maintains original audio format and quality during splitting
+- **Buffer Management**: Smart buffer periods (0.1s for audio) around cuts for natural transitions
+- **Format Support**: Comprehensive support for audio formats (.mp3, .wav, .flac, .m4a, .aac, .ogg)
 - **Format Conversion**: Convert between various audio/video formats (MP4→MP3, M4A→WAV, OGG→WAV)
 - **Batch Processing**: Process multiple files with glob patterns and directory support
 - **File Management**: Batch rename files with pattern matching and dry-run capabilities
 - **Metadata Processing**: Convert metadata files to CSV/JSON for data workflows
 - **Audio Optimization**: Convert audio to specific formats (22kHz mono) for ML/AI applications
+- **Comprehensive Logging**: Detailed logging with configurable levels for debugging
 
 ## Requirements
 
@@ -64,44 +70,59 @@ Generates folder structure for LJSpeech-1.1 processing from mimic-recording-stud
   - Linux (Debian/Ubuntu): `sudo apt install ffmpeg`
   - macOS: `brew install ffmpeg`
 
-### Optional Dependencies
-For specific scripts:
-- **pydub**: Required for `split_it.py` (audio file splitting)
-  ```bash
-  pip install pydub
-  ```
-- **librosa** and **soundfile**: Required for `utilities/convert_audio_to_22k_mono.py`
-  ```bash
-  pip install librosa soundfile
-  ```
+### Python Dependencies
+- **librosa** and **soundfile**: Required for `utilities/convert_audio_to_22k_mono.py`. These are listed in `requirements.txt`.
 
 ## Installation
 ```bash
+# 1. Clone the repository
+# git clone https://github.com/your-username/python_vid_audio_edit_code.git
+# cd python_vid_audio_edit_code
+
 # Verify FFmpeg is available
 ffmpeg -version
+ffprobe -version
 
-# (Optional) Create and activate a virtual environment
-python -m venv .venv && source .venv/bin/activate  # Windows (PowerShell): .venv\\Scripts\\Activate.ps1
+# Create and activate a virtual environment (recommended)
+python3 -m venv .venv
+source .venv/bin/activate  # On Windows, use: .venv\Scripts\activate
 
-# Install dependencies for audio splitting
-pip install pydub
-
-# (Optional) Install utility dependencies
-pip install librosa soundfile
+# Install Python dependencies for utility scripts
+pip install -r requirements.txt
 ```
 
 ## Usage
 
-### Audio Processing (`audio_silence_cutter.py`)
+### Audio Silence Cutter (`audio_silence_cutter.py`)
+
+**Basic Usage:**
 ```bash
-# Basic usage
+# Process with default settings (-30dB threshold, 0.1s buffer)
 python3 audio_silence_cutter.py podcast.mp3
+# Output: podcast_cut.mp3
 
-# Custom output file and threshold
-python3 audio_silence_cutter.py audio.wav clean_audio.wav -35
+# Specify custom output file
+python3 audio_silence_cutter.py audio.wav clean_audio.wav
 
-# Get help
+# Custom threshold for more/less aggressive cutting
+python3 audio_silence_cutter.py recording.mp3 output.mp3 -35
+
+# Get detailed help
 python3 audio_silence_cutter.py --help
+```
+
+**Advanced Examples:**
+```bash
+# Very aggressive silence removal (good for noisy recordings)
+python3 audio_silence_cutter.py noisy_podcast.mp3 clean_podcast.mp3 -25
+
+# Conservative silence removal (preserve natural pauses)
+python3 audio_silence_cutter.py interview.wav clean_interview.wav -40
+
+# Process multiple files
+for file in *.mp3; do
+    python3 audio_silence_cutter.py "$file"
+done
 ```
 
 ### Video Processing (`video_silence_cutter.py`)
@@ -114,21 +135,6 @@ python3 video_silence_cutter.py input.mp4 edited.mp4
 
 # Show help
 python3 video_silence_cutter.py --help
-```
-
-### Audio File Splitting (`split_it.py`)
-```bash
-# Basic usage - Split audio file into ~25MB chunks in ./chunks directory
-python3 split_it.py your_audio_file.mp3
-
-# Custom output directory
-python3 split_it.py your_audio_file.mp3 ./my_output_folder
-
-# Custom chunk size (30MB instead of 25MB)
-python3 split_it.py your_audio_file.wav ./output --size 30.0
-
-# Show help
-python3 split_it.py --help
 ```
 
 ### MP4 to MP3 Conversion (`convert_mp4_to_mp3.py`)
@@ -208,33 +214,50 @@ python3 utilities/convert_audio_to_22k_mono.py --overwrite
 python3 utilities/convert_audio_to_22k_mono.py --recursive
 ```
 
-## Silence Threshold Guide
-- **-20 to -25dB**: Very aggressive (removes low background noise)
-- **-30 to -35dB**: Moderate (good for most recordings)
-- **-40 to -50dB**: Conservative (only removes obvious silence)
+## Audio Silence Detection Guide
+
+### dB Threshold Reference
+- **-20 to -25dB**: Very aggressive (removes low background noise, room tone)
+- **-30 to -35dB**: Moderate (recommended for most recordings, good balance)
+- **-40 to -50dB**: Conservative (only removes obvious silence, preserves natural pauses)
+
+### How Silence Detection Works
+1. **Detection**: FFmpeg's silencedetect filter identifies silence segments longer than 0.5 seconds
+2. **Buffer Application**: Adds 0.1-second buffer around silence boundaries for natural transitions  
+3. **Segment Extraction**: Uses aselect filter to keep non-silent portions
+4. **Reconstruction**: Employs asetpts to create continuous audio timeline
+
+### Troubleshooting Silence Detection
+- **Too much audio removed**: Increase threshold (e.g., -25 → -35)
+- **Not enough silence removed**: Decrease threshold (e.g., -35 → -25)
+- **Choppy audio**: Check for very short segments, consider different threshold
+- **No silences detected**: File may have constant background noise, try lower threshold
 
 ## Configuration
 
 ### Audio Processing (`audio_silence_cutter.py`)
-- Buffer time: 0.1 seconds
-- Logs saved to: `audio_silence_cutter.log`
-- Default threshold: -30dB
-- Silence detection: 0.5 seconds minimum
+- **Buffer time**: 0.1 seconds (around silence cuts)
+- **Minimum silence duration**: 0.5 seconds (for detection)
+- **Log file**: `audio_silence_cutter.log`
+- **Log level**: ERROR (change `log_level` variable for more detail)
+- **Default threshold**: -30dB
+- **Supported formats**: .mp3, .wav, .flac, .m4a, .aac, .ogg
 
 ### Video Processing (`video_silence_cutter.py`)
-- Buffer time: 0.2 seconds
-- Logs saved to: `silence_cutter.log`
-- Default threshold: -25dB
-- Silence detection: 1.0 seconds minimum
+- **Buffer time**: 0.2 seconds
+- **Log file**: `silence_cutter.log`
+- **Default threshold**: -25dB
+- **Minimum silence duration**: 1.0 seconds
 
 ## Supported Formats
 
+### Audio Input/Output (audio_silence_cutter.py)
+- **Input**: .mp3, .wav, .flac, .m4a, .aac, .ogg
+- **Output**: Same format as input (preserves original quality)
+- **Quality**: Lossless processing (no re-encoding unless necessary)
+
 ### Video Input (for silence cutting and conversion)
 - .mp4, .avi, .mov, .mkv, .webm (any FFmpeg-supported video format)
-
-### Audio Input/Output
-- **Input**: .mp3, .wav, .flac, .m4a, .aac, .ogg (any FFmpeg-supported audio format)
-- **Output**: Same as input formats, plus conversion targets
 
 ### Format Conversions
 - **MP4 → MP3**: 192kbps, 44.1kHz stereo
@@ -242,71 +265,14 @@ python3 utilities/convert_audio_to_22k_mono.py --recursive
 - **OGG → WAV**: Uncompressed WAV format
 - **WAV → 22kHz Mono**: For ML/AI applications
 
-## Audio File Splitting Details
-
-### Features
-- 🎯 **Size-based splitting**: Creates chunks based on file size (bytes), not duration
-- 🔇 **Silent point detection**: Splits only at quiet moments to avoid cutting words
-- 🎵 **Quality preservation**: Maintains original audio format and quality
-- 📁 **Flexible output**: Custom output directories and chunk sizes
-- 🔄 **Multiple formats**: Supports MP3, WAV, FLAC, M4A, and more
-- 📊 **Progress tracking**: Detailed information about each chunk created
-
-### How It Works
-1. **Analyzes** the input file size and estimates number of chunks needed
-2. **Calculates** target duration for each chunk based on size ratio
-3. **Searches** for silent points within ±10% of the target split location
-4. **Falls back** to more lenient silence detection if no quiet moments found
-5. **Exports** chunks maintaining original quality and format
-6. **Provides** detailed progress information for each chunk
-
-### Example Output
-```
-Loading audio file: videoplayback.mp3
-Original file size: 156.43 MB
-Audio duration: 3847.50 seconds
-Audio format: 44100 Hz, 2 channels, 16 bit
-Estimated chunks needed: 7
-
-Processing chunk 1...
-Saved: part1.mp3
-  Size: 24.98 MB
-  Duration: 612.34 seconds
-  Time range: 0.00s - 612.34s
-
-Processing chunk 2...
-Saved: part2.mp3
-  Size: 24.95 MB
-  Duration: 608.12 seconds
-  Time range: 612.34s - 1220.46s
-
-...
-
-✓ Audio splitting completed successfully!
-```
-
-### Advanced Options
-| Option | Description | Default |
-|--------|-------------|---------|
-| `input_file` | Path to audio file to split | Required |
-| `output_dir` | Directory for output chunks | `./chunks` |
-| `--size` | Target chunk size in MB | `25.0` |
-
-### Tips for Best Results
-- **Podcasts/Speech**: Works excellently due to natural pauses
-- **Music**: May split between songs or during instrumental breaks
-- **Dense audio**: Script will find the best available quiet moments
-- **Large files**: Progress is shown for each chunk created
-
 ## Project Structure
 ```
 python_vid_audio_edit_code/
-├── audio_silence_cutter.py          # Audio silence removal
+├── audio_silence_cutter.py          # Audio silence removal (main script)
 ├── video_silence_cutter.py          # Video silence removal
 ├── convert_mp4_to_mp3.py            # MP4 to MP3 conversion
 ├── convert_m4a_to_wav.py            # M4A to WAV batch conversion
 ├── convert_ogg_to_wav.py            # OGG to WAV batch conversion
-├── split_it.py                      # Audio file splitting
 ├── file_renamer_script.py           # Batch file renaming
 ├── requirements.txt                 # Python dependencies
 ├── README.md                        # This file
@@ -316,23 +282,39 @@ python_vid_audio_edit_code/
     └── simple script.py             # LJSpeech dataset generator
 ```
 
+## Technical Details
+
+### Audio Processing Algorithm
+1. **Silence Detection**: Uses FFmpeg's `silencedetect` filter with configurable threshold and minimum duration
+2. **Timestamp Extraction**: Parses FFmpeg output to extract silence start/end timestamps
+3. **Buffer Application**: Adds protective buffer around silence boundaries to prevent audio cuts
+4. **Filter Generation**: Creates complex FFmpeg filter using `aselect` and `asetpts` for seamless reconstruction
+5. **Audio Reconstruction**: Processes audio through filter script for optimal performance
+
+### Error Handling
+- **File Validation**: Checks input file existence and format compatibility
+- **Process Monitoring**: Monitors FFmpeg execution with detailed error reporting  
+- **Cleanup**: Automatically removes temporary filter files
+- **Logging**: Comprehensive logging system for debugging and monitoring
+
 ## Notes
-- **Quality Preservation**: All scripts preserve original quality during processing
-- **Performance**: Processing time depends on file size and system resources
-- **Independence**: All scripts can run independently without dependencies on each other
-- **Cleanup**: Temporary filter files are automatically cleaned up
-- **Error Handling**: Comprehensive error handling and logging throughout
+- **Quality Preservation**: Lossless processing - no unnecessary re-encoding
+- **Performance**: Processing time depends on file size; detection is typically fast
+- **Memory Efficient**: Uses temporary files and streaming processing for large files
 - **Cross-Platform**: Works on Windows, Linux, and macOS (requires FFmpeg)
+- **Independence**: All scripts run independently without cross-dependencies
+- **Backup Recommendation**: Original files are preserved (output uses different filename)
+
+### Audio Processing Best Practices
+- **Test First**: Try different thresholds on a small sample before batch processing
+- **Monitor Output**: Check that silence detection worked as expected
+- **Backup Originals**: Keep original files safe before processing
+- **Format Consistency**: Output maintains input format and quality
+- **Log Analysis**: Check log files if processing doesn't work as expected
 
 ### Additional Notes
 - `utilities/convert_audio_to_22k_mono.py` requires `librosa` and `soundfile` packages
-- `split_it.py` requires `pydub` package for audio file splitting
-- On Windows, consider using WSL or ensure FFmpeg is on the PATH
+- On Windows, ensure FFmpeg is properly installed and accessible in PATH
 - All batch conversion scripts support glob patterns for flexible file selection
 - File renamer includes dry-run mode for safe testing
-
-### Audio Splitter Troubleshooting
-- **"ModuleNotFoundError: No module named 'pydub'"**: Install pydub using `pip install pydub`
-- **"ffmpeg not found" or audio format errors**: Install ffmpeg system-wide
-- **File too small message**: If your file is already smaller than 25MB, no splitting is needed
-- **Permission errors**: Ensure you have write permissions to the output directory
+- Silence detection works best with consistent audio levels throughout the file
